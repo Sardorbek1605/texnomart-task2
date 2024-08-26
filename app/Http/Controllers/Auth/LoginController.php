@@ -34,14 +34,18 @@ class LoginController extends Controller
         $phone = $request->input('phone');
         $verification_code = rand(100000, 999999);
         cache([$phone => $verification_code], now()->addMinutes(2));
-        $sendSMS = Http::post('http://127.0.0.1:8001/api/fake/sms', [
+
+        // Bu qism vaqtinchalik olib turilibdi, shunki realniy sms api bolmaganligi sabab
+
+        /*$sendSMS = Http::post('http://127.0.0.1:8001/api/fake/sms', [
             'phone' => $phone,
             'message' => "Your verification code is $verification_code"
-        ]);
-        if ($sendSMS->status() == '200'){
+        ]);*/
+        $sendSMS = true;
+        if ($sendSMS/*->status() == '200'*/){
             return response()->json([
                 'success' => true,
-                'message' => "Verification code sent to your phone ($verification_code)"
+                'message' => "Verification code sent to your phone ($verification_code)" //bunda $verification_code sms ga boradigan kodni korvolish uchun, prodga chiqib haqiqiy sms api ulanganda olib tashlanadi!
             ]);
         }else{
             return response()->json([
