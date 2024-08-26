@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: laravel-app
+        container_name: laravel-app
+        restart: unless-stopped
+        working_dir: /var/www/html
+        volumes:
+            - .:/var/www/html
+        networks:
+            - laravel
+        depends_on:
+            - mysql
+        command: >
+            sh -c "
+            composer install &&
+            php artisan migrate &&
+            php artisan db:seed &&
+            php-fpm
+            "
+
+    fake-api:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: fake-api
+        container_name: fake-api
+        restart: unless-stopped
+        working_dir: /var/www/html
+        volumes:
+            - .:/var/www/html
+        networks:
+            - laravel
+        ports:
+            - "8001:80"
+        depends_on:
+            - mysql
+        command: >
+            sh -c "
+            composer install &&
+            php artisan migrate &&
+            php artisan db:seed &&
+            php -S 0.0.0.0:80 -t /var/www/html/public
+            "
+
+    mysql:
+        image: mysql:8.0
+        container_name: laravel-mysql
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: texnomart_task
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_USER: root
+            MYSQL_PASSWORD: root
+        volumes:
+            - mysql-data:/var/lib/mysql
+        networks:
+            - laravel
+
+    web:
+        image: nginx:alpine
+        container_name: laravel-web
+        restart: unless-stopped
+        ports:
+            - "8000:80"
+        volumes:
+            - .:/var/www/html
+            - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+        networks:
+            - laravel
+
+networks:
+    laravel:
+        driver: bridge
+
+volumes:
+    mysql-data:
+        driver: local

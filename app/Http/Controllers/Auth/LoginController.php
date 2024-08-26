@@ -70,10 +70,7 @@ class LoginController extends Controller
             cache()->forget($phone);
             return $this->respondWithToken($token);
         }else{
-            return response()->json([
-                'success' => false,
-                'message' => "Verification code isn't correct!"
-            ]);
+            return response()->errorJson("Verification code isn't correct!");
         }
     }
 
